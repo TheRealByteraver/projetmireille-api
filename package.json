@@ -5,14 +5,21 @@
   "main": "app.js",
   "scripts": {
     "start": "node ./app.js",
-    "dev": "nodemon app.js",
-    "seed": "cross-env DB_ENABLE_LOGGING=true node './seed'"
+    "dev": "nodemon --exec ts-node app.ts",
+    "seed": "cross-env DB_ENABLE_LOGGING=true npx ts-node seed/index.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "nodemon": "^3.1.11"
+    "@types/basic-auth": "^1.1.8",
+    "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/morgan": "^1.9.10",
+    "@types/node": "^25.2.3",
+    "nodemon": "^3.1.11",
+    "ts-node": "^10.9.2"
   },
   "dependencies": {
     "basic-auth": "^2.0.1",

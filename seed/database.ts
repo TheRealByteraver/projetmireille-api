@@ -1,38 +1,62 @@
-'use strict';
+import bcrypt from 'bcryptjs';
+import Context from './context';
 
-const bcryptjs = require('bcryptjs');
-const Context = require('./context');
+interface SeedUser {
+  firstName: string;
+  lastName: string;
+  emailAddress: string;
+  password: string;
+}
 
-class Database {
-  constructor(seedData, enableLogging) {
+interface SeedCourse {
+  userId: number;
+  title: string;
+  description: string;
+  estimatedTime?: string;
+  materialsNeeded?: string;
+}
+
+export interface SeedData {
+  users: SeedUser[];
+  courses: SeedCourse[];
+}
+
+export default class Database {
+  courses: SeedCourse[];
+  users: SeedUser[];
+  enableLogging: boolean;
+  context: Context;
+
+  constructor(seedData: SeedData, enableLogging: boolean) {
     this.courses = seedData.courses;
     this.users = seedData.users;
     this.enableLogging = enableLogging;
     this.context = new Context('fsjstd-restapi.db', enableLogging);
   }
 
-  log(message) {
+  log(message: string): void {
     if (this.enableLogging) {
       console.info(message);
     }
   }
 
-  tableExists(tableName) {
+  tableExists(tableName: string): Promise<unknown> {
     this.log(`Checking if the ${tableName} table exists...`);
-
-    return this.context
-      .retrieveValue(`
+    return this.context.retrieveValue(
+      `
         SELECT EXISTS (
           SELECT 1 
           FROM sqlite_master 
           WHERE type = 'table' AND name = ?
         );
-      `, tableName);
+      `,
+      tableName
+    );
   }
 
-  createUser(user) {
-    return this.context
-      .execute(`
+  createUser(user: SeedUser): Promise<void> {
+    return this.context.execute(
+      `
         INSERT INTO Users
           (firstName, lastName, emailAddress, password, createdAt, updatedAt)
         VALUES
@@ -41,12 +65,13 @@ class Database {
       user.firstName,
       user.lastName,
       user.emailAddress,
-      user.password);
+      user.password
+    );
   }
 
-  createCourse(course) {
-    return this.context
-      .execute(`
+  createCourse(course: SeedCourse): Promise<void> {
+    return this.context.execute(
+      `
         INSERT INTO Courses
           (userId, title, description, estimatedTime, materialsNeeded, createdAt, updatedAt)
         VALUES
@@ -55,46 +80,41 @@ class Database {
       course.userId,
       course.title,
       course.description,
-      course.estimatedTime,
-      course.materialsNeeded);
+      course.estimatedTime ?? null,
+      course.materialsNeeded ?? null
+    );
   }
 
-  async hashUserPasswords(users) {
-    const usersWithHashedPasswords = [];
-
+  async hashUserPasswords(users: SeedUser[]): Promise<SeedUser[]> {
+    const usersWithHashedPasswords: SeedUser[] = [];
     for (const user of users) {
-      const hashedPassword = await bcryptjs.hash(user.password, 10);
+      const hashedPassword = await bcrypt.hash(user.password, 10);
       usersWithHashedPasswords.push({ ...user, password: hashedPassword });
     }
-
     return usersWithHashedPasswords;
   }
 
-  async createUsers(users) {
+  async createUsers(users: SeedUser[]): Promise<void> {
     for (const user of users) {
       await this.createUser(user);
     }
   }
 
-  async createCourses(courses) {
+  async createCourses(courses: SeedCourse[]): Promise<void> {
     for (const course of courses) {
       await this.createCourse(course);
     }
   }
 
-  async init() {
+  async init(): Promise<void> {
     const userTableExists = await this.tableExists('Users');
 
     if (userTableExists) {
       this.log('Dropping the Users table...');
-
-      await this.context.execute(`
-        DROP TABLE IF EXISTS Users;
-      `);
+      await this.context.execute(`DROP TABLE IF EXISTS Users;`);
     }
 
     this.log('Creating the Users table...');
-
     await this.context.execute(`
       CREATE TABLE Users (
         id INTEGER PRIMARY KEY AUTOINCREMENT, 
@@ -108,25 +128,18 @@ class Database {
     `);
 
     this.log('Hashing the user passwords...');
-
     const users = await this.hashUserPasswords(this.users);
 
     this.log('Creating the user records...');
-
     await this.createUsers(users);
 
     const courseTableExists = await this.tableExists('Courses');
-
     if (courseTableExists) {
       this.log('Dropping the Courses table...');
-
-      await this.context.execute(`
-        DROP TABLE IF EXISTS Courses;
-      `);
+      await this.context.execute(`DROP TABLE IF EXISTS Courses;`);
     }
 
     this.log('Creating the Courses table...');
-
     await this.context.execute(`
       CREATE TABLE Courses (
         id INTEGER PRIMARY KEY AUTOINCREMENT, 
@@ -142,11 +155,8 @@ class Database {
     `);
 
     this.log('Creating the course records...');
-
     await this.createCourses(this.courses);
 
     this.log('Database successfully initialized!');
   }
 }
-
-module.exports = Database;
