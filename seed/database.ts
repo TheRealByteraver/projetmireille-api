@@ -31,7 +31,7 @@ export default class Database {
     this.courses = seedData.courses;
     this.users = seedData.users;
     this.enableLogging = enableLogging;
-    this.context = new Context('fsjstd-restapi.db', enableLogging);
+    this.context = new Context('projetmireille.db', enableLogging);
   }
 
   log(message: string): void {

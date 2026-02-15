@@ -1,6 +1,6 @@
 {
   "development": {
-    "storage": "fsjstd-restapi.db",
+    "storage": "projetmireille.db",
     "username": "root",
     "password": null,
     "database": "database_development",
@@ -8,7 +8,7 @@
     "dialect": "sqlite"
   },
   "test": {
-    "storage": "fsjstd-restapi.db",
+    "storage": "projetmireille.db",
     "username": "root",
     "password": null,
     "database": "database_test",
@@ -16,10 +16,11 @@
     "dialect": "sqlite"
   },
   "production": {
-    "username": "project09",
-    "password": "qSdhY567!hK",
-    "database": "project09",
-    "host": "localhost",
+    "storage": "projetmireille.db",
+    "username": "root",
+    "password": null,
+    "database": "database_test",
+    "host": "127.0.0.1",
     "dialect": "sqlite"
   }
 }
