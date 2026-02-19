@@ -1,12 +1,12 @@
 import bcrypt from 'bcryptjs';
 import Context from './context';
 
-/** Converts a date string (e.g. from seed JSON) to SQLite timestamp format (YYYY-MM-DD HH:MM:SS). */
+/** Converts a date string (e.g. from seed JSON) to ISO 8601 format matching Sequelize/API (YYYY-MM-DDTHH:mm:ss.sssZ). */
 function toSqliteDatetime(dateStr: string | undefined): string {
-  if (!dateStr) return new Date().toISOString().slice(0, 19).replace('T', ' ');
+  if (!dateStr) return new Date().toISOString();
   const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return new Date().toISOString().slice(0, 19).replace('T', ' ');
-  return d.toISOString().slice(0, 19).replace('T', ' ');
+  if (isNaN(d.getTime())) return new Date().toISOString();
+  return d.toISOString();
 }
 
 // ---------------------------------------------------------------------------

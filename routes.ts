@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import express, { Response } from 'express';
 import { asyncHandler } from './middleware/async-handler';
-import { User, ExerciseList } from './models';
+import { sequelize, User, ExerciseList } from './models';
 import { authenticateUser } from './middleware/auth-user';
 
 const router = express.Router();
@@ -81,12 +81,31 @@ router.post(
   '/users',
   asyncHandler(async (req, res) => {
     try {
-      const body = req.body as Record<string, unknown> & { password?: string };
-      const userData = { ...body };
-      if (typeof userData.password === 'string') {
-        userData.password = await bcrypt.hash(userData.password, 10);
-      }
-      await User.create(userData);
+      const body = req.body as Record<string, unknown> & {
+        password?: string;
+        firstName?: string;
+        lastName?: string;
+        username?: string;
+        roles?: string;
+      };
+      const password =
+        typeof body.password === 'string' ? await bcrypt.hash(body.password, 10) : '';
+      const now = new Date().toISOString();
+      await sequelize.query(
+        `INSERT INTO Users (firstName, lastName, username, password, roles, createdAt, updatedAt)
+         VALUES (:firstName, :lastName, :username, :password, :roles, :createdAt, :updatedAt)`,
+        {
+          replacements: {
+            firstName: body.firstName ?? '',
+            lastName: body.lastName ?? '',
+            username: body.username ?? '',
+            password,
+            roles: body.roles ?? '',
+            createdAt: now,
+            updatedAt: now,
+          },
+        }
+      );
       res.location('/').status(201).end();
     } catch (error) {
       handleSQLErrorOrRethrow(error as SequelizeValidationError, res);
