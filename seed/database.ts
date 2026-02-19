@@ -1,35 +1,58 @@
 import bcrypt from 'bcryptjs';
 import Context from './context';
 
-interface SeedUser {
-  firstName: string;
-  lastName: string;
-  emailAddress: string;
-  password: string;
+/** Converts a date string (e.g. from seed JSON) to SQLite timestamp format (YYYY-MM-DD HH:MM:SS). */
+function toSqliteDatetime(dateStr: string | undefined): string {
+  if (!dateStr) return new Date().toISOString().slice(0, 19).replace('T', ' ');
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return new Date().toISOString().slice(0, 19).replace('T', ' ');
+  return d.toISOString().slice(0, 19).replace('T', ' ');
 }
 
-interface SeedCourse {
-  userId: number;
-  title: string;
-  description: string;
-  estimatedTime?: string;
-  materialsNeeded?: string;
+// ---------------------------------------------------------------------------
+// Seed data types reflecting data.json
+// ---------------------------------------------------------------------------
+
+interface SeedUser {
+  id?: number;
+  firstName?: string;
+  lastName?: string;
+  username: string;
+  password: string;
+  roles: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface SeedExerciseItem {
+  exerciseType: string;
+  exerciseData: Record<string, unknown>;
+}
+
+interface SeedExerciseList {
+  id?: number;
+  name: string;
+  userId?: number;
+  userID?: number; // typo in some seed data
+  createdAt?: string;
+  updatedAt?: string;
+  exercises: SeedExerciseItem[];
 }
 
 export interface SeedData {
   users: SeedUser[];
-  courses: SeedCourse[];
+  exerciseList: SeedExerciseList[];
 }
 
 export default class Database {
-  courses: SeedCourse[];
   users: SeedUser[];
+  exerciseList: SeedExerciseList[];
   enableLogging: boolean;
   context: Context;
 
   constructor(seedData: SeedData, enableLogging: boolean) {
-    this.courses = seedData.courses;
     this.users = seedData.users;
+    this.exerciseList = seedData.exerciseList ?? [];
     this.enableLogging = enableLogging;
     this.context = new Context('projetmireille.db', enableLogging);
   }
@@ -45,8 +68,8 @@ export default class Database {
     return this.context.retrieveValue(
       `
         SELECT EXISTS (
-          SELECT 1 
-          FROM sqlite_master 
+          SELECT 1
+          FROM sqlite_master
           WHERE type = 'table' AND name = ?
         );
       `,
@@ -55,43 +78,52 @@ export default class Database {
   }
 
   createUser(user: SeedUser): Promise<void> {
+    const createdAt = toSqliteDatetime(user.createdAt);
+    const updatedAt = toSqliteDatetime(user.updatedAt);
     return this.context.execute(
       `
         INSERT INTO Users
-          (firstName, lastName, emailAddress, password, createdAt, updatedAt)
+          (firstName, lastName, username, password, roles, createdAt, updatedAt)
         VALUES
-          (?, ?, ?, ?, datetime('now'), datetime('now'));
+          (?, ?, ?, ?, ?, ?, ?);
       `,
-      user.firstName,
-      user.lastName,
-      user.emailAddress,
-      user.password
+      user.firstName ?? '',
+      user.lastName ?? '',
+      user.username,
+      user.password,
+      user.roles,
+      createdAt,
+      updatedAt
     );
   }
 
-  createCourse(course: SeedCourse): Promise<void> {
+  createExerciseList(row: SeedExerciseList): Promise<void> {
+    const userId = row.userId ?? row.userID ?? null;
+    const createdAt = toSqliteDatetime(row.createdAt);
+    const updatedAt = toSqliteDatetime(row.updatedAt);
+    const exercisesJson = JSON.stringify(row.exercises ?? []);
     return this.context.execute(
       `
-        INSERT INTO Courses
-          (userId, title, description, estimatedTime, materialsNeeded, createdAt, updatedAt)
+        INSERT INTO ExerciseList
+          (name, userId, createdAt, updatedAt, exercises)
         VALUES
-          (?, ?, ?, ?, ?, datetime('now'), datetime('now'));
+          (?, ?, ?, ?, ?);
       `,
-      course.userId,
-      course.title,
-      course.description,
-      course.estimatedTime ?? null,
-      course.materialsNeeded ?? null
+      row.name,
+      userId,
+      createdAt,
+      updatedAt,
+      exercisesJson
     );
   }
 
   async hashUserPasswords(users: SeedUser[]): Promise<SeedUser[]> {
-    const usersWithHashedPasswords: SeedUser[] = [];
+    const result: SeedUser[] = [];
     for (const user of users) {
-      const hashedPassword = await bcrypt.hash(user.password, 10);
-      usersWithHashedPasswords.push({ ...user, password: hashedPassword });
+      const hashed = await bcrypt.hash(user.password, 10);
+      result.push({ ...user, password: hashed });
     }
-    return usersWithHashedPasswords;
+    return result;
   }
 
   async createUsers(users: SeedUser[]): Promise<void> {
@@ -100,15 +132,15 @@ export default class Database {
     }
   }
 
-  async createCourses(courses: SeedCourse[]): Promise<void> {
-    for (const course of courses) {
-      await this.createCourse(course);
+  async createExerciseLists(rows: SeedExerciseList[]): Promise<void> {
+    for (const row of rows) {
+      await this.createExerciseList(row);
     }
   }
 
   async init(): Promise<void> {
+    // ----- Users -----
     const userTableExists = await this.tableExists('Users');
-
     if (userTableExists) {
       this.log('Dropping the Users table...');
       await this.context.execute(`DROP TABLE IF EXISTS Users;`);
@@ -117,45 +149,60 @@ export default class Database {
     this.log('Creating the Users table...');
     await this.context.execute(`
       CREATE TABLE Users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, 
-        firstName VARCHAR(255) NOT NULL DEFAULT '', 
-        lastName VARCHAR(255) NOT NULL DEFAULT '', 
-        emailAddress VARCHAR(255) NOT NULL DEFAULT '' UNIQUE, 
-        password VARCHAR(255) NOT NULL DEFAULT '', 
-        createdAt DATETIME NOT NULL, 
-        updatedAt DATETIME NOT NULL
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        firstName VARCHAR(255) NOT NULL DEFAULT '',
+        lastName VARCHAR(255) NOT NULL DEFAULT '',
+        username VARCHAR(255) NOT NULL UNIQUE,
+        password VARCHAR(255) NOT NULL DEFAULT '',
+        roles VARCHAR(255) NOT NULL DEFAULT '',
+        createdAt TIMESTAMP NOT NULL,
+        updatedAt TIMESTAMP NOT NULL
       );
+    `);
+    await this.context.execute(`
+      CREATE TRIGGER Users_updatedAt
+      AFTER UPDATE ON Users
+      FOR EACH ROW
+      BEGIN
+        UPDATE Users SET updatedAt = datetime('now') WHERE id = NEW.id;
+      END;
     `);
 
     this.log('Hashing the user passwords...');
-    const users = await this.hashUserPasswords(this.users);
-
+    const usersWithHashed = await this.hashUserPasswords(this.users);
     this.log('Creating the user records...');
-    await this.createUsers(users);
+    await this.createUsers(usersWithHashed);
 
-    const courseTableExists = await this.tableExists('Courses');
-    if (courseTableExists) {
-      this.log('Dropping the Courses table...');
-      await this.context.execute(`DROP TABLE IF EXISTS Courses;`);
+    // ----- ExerciseList (exercises stored as JSON in TEXT) -----
+    const exerciseListTableExists = await this.tableExists('ExerciseList');
+    if (exerciseListTableExists) {
+      this.log('Dropping the ExerciseList table...');
+      await this.context.execute(`DROP TABLE IF EXISTS ExerciseList;`);
     }
 
-    this.log('Creating the Courses table...');
+    this.log('Creating the ExerciseList table...');
     await this.context.execute(`
-      CREATE TABLE Courses (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, 
-        title VARCHAR(255) NOT NULL DEFAULT '', 
-        description TEXT NOT NULL DEFAULT '', 
-        estimatedTime VARCHAR(255), 
-        materialsNeeded VARCHAR(255), 
-        createdAt DATETIME NOT NULL, 
-        updatedAt DATETIME NOT NULL, 
-        userId INTEGER NOT NULL DEFAULT -1 
-          REFERENCES Users (id) ON DELETE CASCADE ON UPDATE CASCADE
+      CREATE TABLE ExerciseList (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name VARCHAR(255) NOT NULL DEFAULT '',
+        userId INTEGER NOT NULL,
+        createdAt TIMESTAMP NOT NULL,
+        updatedAt TIMESTAMP NOT NULL,
+        exercises TEXT NOT NULL DEFAULT '[]',
+        FOREIGN KEY (userId) REFERENCES Users (id) ON DELETE CASCADE ON UPDATE CASCADE
       );
     `);
+    await this.context.execute(`
+      CREATE TRIGGER ExerciseList_updatedAt
+      AFTER UPDATE ON ExerciseList
+      FOR EACH ROW
+      BEGIN
+        UPDATE ExerciseList SET updatedAt = datetime('now') WHERE id = NEW.id;
+      END;
+    `);
 
-    this.log('Creating the course records...');
-    await this.createCourses(this.courses);
+    this.log('Creating the exercise list records...');
+    await this.createExerciseLists(this.exerciseList);
 
     this.log('Database successfully initialized!');
   }

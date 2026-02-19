@@ -1,6 +1,6 @@
 interface AuthUser {
   id: number;
-  emailAddress: string;
+  username: string;
   firstName: string;
   lastName: string;
   password?: string;

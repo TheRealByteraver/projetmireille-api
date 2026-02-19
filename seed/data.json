@@ -2,11 +2,11 @@
   "users": [
   {
     "id": 1,
-    "lastName": "",
+    "lastName": "NC",
     "firstName": "Mireille",
     "username": "mireille",
     "password": "mireille",
-    "roles": ["admin"],
+    "roles": "admin",
     "createdAt": "Sun, 15 Feb 2026 09:33:27 GMT",
     "updatedAt": "Sun, 15 Feb 2026 09:33:27 GMT"
   },
@@ -16,16 +16,17 @@
     "firstName": "Erland",
     "username": "erland",
     "password": "erland",
-    "roles": ["teacher"],
+    "roles": "teacher",
     "createdAt": "Sun, 15 Feb 2026 09:33:27 GMT",
     "updatedAt": "Sun, 15 Feb 2026 09:33:27 GMT"
   },
   {
     "id": 3,
     "lastName": "Leblanc",
+    "firstName": "Julie",
     "username": "julie",
     "password": "julie",
-    "roles": ["student"],
+    "roles": "student",
     "createdAt": "Sun, 15 Feb 2026 09:33:27 GMT",
     "updatedAt": "Sun, 15 Feb 2026 09:33:27 GMT"
   }

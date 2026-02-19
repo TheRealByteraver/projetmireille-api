@@ -23,19 +23,19 @@ if (envConfig && (envConfig as { use_env_variable?: string }).use_env_variable) 
 }
 
 import initUser from './User';
-import initCourse from './Course';
+import initExerciseList from './ExerciseList';
 
 const User = initUser(sequelize);
-const Course = initCourse(sequelize);
+const ExerciseList = initExerciseList(sequelize);
 
 db.User = User;
-db.Course = Course;
+db.ExerciseList = ExerciseList;
 
 (User as { associate?: (models: Record<string, unknown>) => void }).associate?.(db);
-(Course as { associate?: (models: Record<string, unknown>) => void }).associate?.(db);
+(ExerciseList as { associate?: (models: Record<string, unknown>) => void }).associate?.(db);
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
-export { sequelize, User, Course };
+export { sequelize, User, ExerciseList };
 export default db;

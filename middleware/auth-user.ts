@@ -9,19 +9,19 @@ export async function authenticateUser(req: Request, res: Response, next: NextFu
 
   if (credentials) {
     const user = await User.findOne({
-      where: { emailAddress: credentials.name },
-    }) as { password: string; emailAddress: string; get: (opts: { plain: true }) => Express.Request['currentUser'] } | null;
+      where: { username: credentials.name },
+    }) as { password: string; username: string; get: (opts: { plain: true }) => Express.Request['currentUser'] } | null;
 
     if (user) {
       const authenticated = bcrypt.compareSync(credentials.pass, user.password);
 
       if (authenticated) {
-        console.log(`Authentication successful for username: ${user.emailAddress}`);
+        console.log(`Authentication successful for username: ${user.username}`);
         req.currentUser = user.get({ plain: true }) as Express.Request['currentUser'];
         next();
         return;
       } else {
-        message = `Authentication failure for username: ${user.emailAddress}`;
+        message = `Authentication failure for username: ${user.username}`;
       }
     } else {
       message = `User not found for username: ${credentials.name}`;

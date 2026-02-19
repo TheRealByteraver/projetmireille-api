@@ -1,6 +1,6 @@
-import express, { Request, Response } from 'express';
+import express, { Response } from 'express';
 import { asyncHandler } from './middleware/async-handler';
-import { User, Course } from './models';
+import { User, ExerciseList } from './models';
 import { authenticateUser } from './middleware/auth-user';
 
 const router = express.Router();
@@ -27,27 +27,32 @@ function throwError(statusCode: number, message: string): never {
   throw error;
 }
 
-interface CourseUser {
+interface ListUser {
   createdAt?: unknown;
   updatedAt?: unknown;
   password?: string;
   [key: string]: unknown;
 }
 
-interface CourseData extends CourseUser {
-  courseUser: CourseUser;
+interface ExerciseListData extends ListUser {
+  user: ListUser;
 }
 
-function filterCourseData(courseData: CourseData): Omit<CourseData, 'createdAt' | 'updatedAt'> & { courseUser: Omit<CourseUser, 'createdAt' | 'updatedAt' | 'password'> } {
-  const course = { ...courseData };
-  delete course.createdAt;
-  delete course.updatedAt;
-  if (course.courseUser) {
-    delete course.courseUser.createdAt;
-    delete course.courseUser.updatedAt;
-    delete course.courseUser.password;
+function filterExerciseListData(row: ExerciseListData): Omit<ExerciseListData, 'createdAt' | 'updatedAt'> & {
+  user: Omit<ListUser, 'createdAt' | 'updatedAt' | 'password'>;
+} {
+  const out = { ...row };
+  delete out.createdAt;
+  delete out.updatedAt;
+  if (out.user) {
+    out.user = { ...out.user };
+    delete out.user.createdAt;
+    delete out.user.updatedAt;
+    delete out.user.password;
   }
-  return course as Omit<CourseData, 'createdAt' | 'updatedAt'> & { courseUser: Omit<CourseUser, 'createdAt' | 'updatedAt' | 'password'> };
+  return out as Omit<ExerciseListData, 'createdAt' | 'updatedAt'> & {
+    user: Omit<ListUser, 'createdAt' | 'updatedAt' | 'password'>;
+  };
 }
 
 router.get(
@@ -60,7 +65,7 @@ router.get(
         res.status(200).json({
           firstName: user.firstName,
           lastName: user.lastName,
-          emailAddress: user.emailAddress,
+          username: user.username,
         });
       } else {
         throwError(401, 'Authorization failed');
@@ -68,7 +73,7 @@ router.get(
     } catch (error) {
       handleSQLErrorOrRethrow(error as SequelizeValidationError, res);
     }
-  })
+  }),
 );
 
 router.post(
@@ -80,48 +85,46 @@ router.post(
     } catch (error) {
       handleSQLErrorOrRethrow(error as SequelizeValidationError, res);
     }
-  })
+  }),
 );
 
 router.get(
-  '/courses',
+  '/exercise-lists',
   asyncHandler(async (_req, res) => {
     try {
-      const coursesData = await Course.findAll({
-        include: [{ model: User, as: 'courseUser' }],
+      const data = await ExerciseList.findAll({
+        include: [{ model: User, as: 'user' }],
       });
-      const courses = coursesData.map((courseData) =>
-        filterCourseData(courseData.get({ plain: true }) as CourseData)
-      );
-      res.status(200).json(courses);
+      const lists = data.map((row) => filterExerciseListData(row.get({ plain: true }) as ExerciseListData));
+      res.status(200).json(lists);
     } catch (error) {
       handleSQLErrorOrRethrow(error as SequelizeValidationError, res);
     }
-  })
+  }),
 );
 
 router.get(
-  '/courses/:id',
+  '/exercise-lists/:id',
   asyncHandler(async (req, res) => {
     try {
       const id = typeof req.params.id === 'string' ? req.params.id : req.params.id?.[0];
-      const course = await Course.findAll({
+      const rows = await ExerciseList.findAll({
         where: { id },
-        include: [{ model: User, as: 'courseUser' }],
+        include: [{ model: User, as: 'user' }],
       });
-      if (course[0]) {
-        res.status(200).json(filterCourseData(course[0].get({ plain: true }) as CourseData));
+      if (rows[0]) {
+        res.status(200).json(filterExerciseListData(rows[0].get({ plain: true }) as ExerciseListData));
       } else {
-        throwError(404, 'The course you are trying to see does not exist (anymore).🤷‍♂️');
+        throwError(404, 'The exercise list does not exist.');
       }
     } catch (error) {
       handleSQLErrorOrRethrow(error as SequelizeValidationError, res);
     }
-  })
+  }),
 );
 
 router.post(
-  '/courses',
+  '/exercise-lists',
   authenticateUser,
   asyncHandler(async (req, res) => {
     try {
@@ -129,36 +132,39 @@ router.post(
       if (user) {
         const body = req.body as Record<string, unknown>;
         body.userId = user.id;
-        const course = (await Course.create(body)) as unknown as { id: number };
-        res.location(`/courses/${course.id}`).status(201).end();
+        const list = (await ExerciseList.create(body)) as unknown as { id: number };
+        res.location(`/exercise-lists/${list.id}`).status(201).end();
       } else {
-        throwError(401, 'Authentication error creating course');
+        throwError(401, 'Authentication error creating exercise list');
       }
     } catch (error) {
       handleSQLErrorOrRethrow(error as SequelizeValidationError, res);
     }
-  })
+  }),
 );
 
 router.put(
-  '/courses/:id',
+  '/exercise-lists/:id',
   authenticateUser,
   asyncHandler(async (req, res) => {
     try {
-      const user = req.currentUser && (await User.findByPk(req.currentUser.id)) as { id: number } | null;
+      const user = (req.currentUser && (await User.findByPk(req.currentUser.id))) as { id: number } | null;
       if (user) {
-        const courseId = typeof req.params.id === 'string' ? req.params.id : req.params.id?.[0];
-        const course = await Course.findByPk(courseId) as { userId: number; update: (v: Record<string, unknown>) => Promise<unknown> } | null;
-        if (course) {
-          if (course.userId === user.id) {
+        const id = typeof req.params.id === 'string' ? req.params.id : req.params.id?.[0];
+        const list = (await ExerciseList.findByPk(id)) as {
+          userId: number;
+          update: (v: Record<string, unknown>) => Promise<unknown>;
+        } | null;
+        if (list) {
+          if (list.userId === user.id) {
             (req.body as Record<string, unknown>).userId = user.id;
-            await course.update(req.body as Record<string, unknown>);
+            await list.update(req.body as Record<string, unknown>);
             res.status(204).end();
           } else {
-            throwError(403, 'The course you are trying to update does not belong to you.🤷‍♂️');
+            throwError(403, 'This exercise list does not belong to you.');
           }
         } else {
-          throwError(404, 'The course you are trying to update does not exist (anymore).🤷‍♂️');
+          throwError(404, 'The exercise list does not exist.');
         }
       } else {
         throwError(401, 'Authorization failed');
@@ -166,27 +172,27 @@ router.put(
     } catch (error) {
       handleSQLErrorOrRethrow(error as SequelizeValidationError, res);
     }
-  })
+  }),
 );
 
 router.delete(
-  '/courses/:id',
+  '/exercise-lists/:id',
   authenticateUser,
   asyncHandler(async (req, res) => {
     try {
-      const user = req.currentUser && (await User.findByPk(req.currentUser.id)) as { id: number } | null;
+      const user = (req.currentUser && (await User.findByPk(req.currentUser.id))) as { id: number } | null;
       if (user) {
-        const courseId = typeof req.params.id === 'string' ? req.params.id : req.params.id?.[0];
-        const course = await Course.findByPk(courseId) as { userId: number; destroy: () => Promise<void> } | null;
-        if (course) {
-          if (course.userId === user.id) {
-            await course.destroy();
+        const id = typeof req.params.id === 'string' ? req.params.id : req.params.id?.[0];
+        const list = (await ExerciseList.findByPk(id)) as { userId: number; destroy: () => Promise<void> } | null;
+        if (list) {
+          if (list.userId === user.id) {
+            await list.destroy();
             res.status(204).end();
           } else {
-            throwError(403, 'The course you are trying to delete does not belong to you.🤷‍♂️');
+            throwError(403, 'This exercise list does not belong to you.');
           }
         } else {
-          throwError(404, 'The course you are trying to delete does not exist (anymore).🤷‍♂️');
+          throwError(404, 'The exercise list does not exist.');
         }
       } else {
         throwError(401, 'Authorization failed');
@@ -194,7 +200,7 @@ router.delete(
     } catch (error) {
       handleSQLErrorOrRethrow(error as SequelizeValidationError, res);
     }
-  })
+  }),
 );
 
 export default router;
