@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import express, { Response } from 'express';
 import { asyncHandler } from './middleware/async-handler';
 import { User, ExerciseList } from './models';
@@ -80,7 +81,12 @@ router.post(
   '/users',
   asyncHandler(async (req, res) => {
     try {
-      await User.create(req.body as Record<string, unknown>);
+      const body = req.body as Record<string, unknown> & { password?: string };
+      const userData = { ...body };
+      if (typeof userData.password === 'string') {
+        userData.password = await bcrypt.hash(userData.password, 10);
+      }
+      await User.create(userData);
       res.location('/').status(201).end();
     } catch (error) {
       handleSQLErrorOrRethrow(error as SequelizeValidationError, res);

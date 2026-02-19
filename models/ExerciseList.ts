@@ -31,7 +31,7 @@ export default (sequelize: Sequelize) => {
         allowNull: false,
       },
       exercises: {
-        type: DataTypes.TEXT,
+        type: DataTypes.JSON,
         allowNull: false,
         defaultValue: '[]',
         get(): unknown[] {
@@ -53,10 +53,12 @@ export default (sequelize: Sequelize) => {
       sequelize,
       tableName: 'ExerciseList',
       timestamps: true,
-    }
+    },
   );
 
-  (ExerciseList as typeof ExerciseList & { associate: (models: Record<string, unknown>) => void }).associate = (models: Record<string, unknown>) => {
+  (ExerciseList as typeof ExerciseList & { associate: (models: Record<string, unknown>) => void }).associate = (
+    models: Record<string, unknown>,
+  ) => {
     ExerciseList.belongsTo(models.User as never, {
       as: 'user',
       foreignKey: { name: 'userId', allowNull: false },
