@@ -1,7 +1,27 @@
 import { Model, DataTypes, Sequelize } from 'sequelize';
 
+export interface UserAttributes {
+  id: number;
+  firstName: string;
+  lastName: string;
+  username: string;
+  password: string;
+  roles: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export default (sequelize: Sequelize) => {
-  class User extends Model {}
+  class User extends Model<UserAttributes> implements UserAttributes {
+    declare id: number;
+    declare firstName: string;
+    declare lastName: string;
+    declare username: string;
+    declare password: string;
+    declare roles: string;
+    declare readonly createdAt: Date;
+    declare readonly updatedAt: Date;
+  }
 
   User.init(
     {
@@ -38,20 +58,24 @@ export default (sequelize: Sequelize) => {
       createdAt: {
         type: DataTypes.DATE,
         allowNull: false,
+        defaultValue: new Date(),
       },
       updatedAt: {
         type: DataTypes.DATE,
         allowNull: false,
+        defaultValue: new Date(),
       },
     },
     {
       sequelize,
       tableName: 'Users',
       timestamps: true,
-    }
+    },
   );
 
-  (User as typeof User & { associate?: (models: Record<string, unknown>) => void }).associate = (models: Record<string, unknown>) => {
+  (User as typeof User & { associate?: (models: Record<string, unknown>) => void }).associate = (
+    models: Record<string, unknown>,
+  ) => {
     User.hasMany(models.ExerciseList as never, {
       foreignKey: 'userId',
     });

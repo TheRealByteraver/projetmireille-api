@@ -1,41 +1,37 @@
 import bcrypt from 'bcryptjs';
 import Context from './context';
 
-/** Converts a date string (e.g. from seed JSON) to ISO 8601 format matching Sequelize/API (YYYY-MM-DDTHH:mm:ss.sssZ). */
-function toSqliteDatetime(dateStr: string | undefined): string {
-  if (!dateStr) return new Date().toISOString();
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return new Date().toISOString();
-  return d.toISOString();
-}
-
 // ---------------------------------------------------------------------------
 // Seed data types reflecting data.json
 // ---------------------------------------------------------------------------
 
 interface SeedUser {
-  id?: number;
-  firstName?: string;
-  lastName?: string;
+  id: number;
+  firstName: string;
+  lastName: string;
   username: string;
   password: string;
   roles: string;
-  createdAt?: string;
-  updatedAt?: string;
+}
+
+interface SeedLineGraphExercise {
+  startNumber: number;
+  step: number;
+  questionPosition: number;
+  nrOfSteps: number;
+  level: 'CE1' | 'CE2';
+  difficulty: 'easy' | 'medium' | 'hard';
 }
 
 interface SeedExerciseItem {
-  exerciseType: string;
-  exerciseData: Record<string, unknown>;
+  exerciseType: 'lineGraph';
+  exerciseData: SeedLineGraphExercise;
 }
 
 interface SeedExerciseList {
-  id?: number;
+  id: number;
   name: string;
-  userId?: number;
-  userID?: number; // typo in some seed data
-  createdAt?: string;
-  updatedAt?: string;
+  userId: number;
   exercises: SeedExerciseItem[];
 }
 
@@ -73,47 +69,39 @@ export default class Database {
           WHERE type = 'table' AND name = ?
         );
       `,
-      tableName
+      tableName,
     );
   }
 
   createUser(user: SeedUser): Promise<void> {
-    const createdAt = toSqliteDatetime(user.createdAt);
-    const updatedAt = toSqliteDatetime(user.updatedAt);
     return this.context.execute(
       `
         INSERT INTO Users
-          (firstName, lastName, username, password, roles, createdAt, updatedAt)
+          (firstName, lastName, username, password, roles)
         VALUES
-          (?, ?, ?, ?, ?, ?, ?);
+          (?, ?, ?, ?, ?);
       `,
       user.firstName ?? '',
       user.lastName ?? '',
       user.username,
       user.password,
       user.roles,
-      createdAt,
-      updatedAt
     );
   }
 
   createExerciseList(row: SeedExerciseList): Promise<void> {
-    const userId = row.userId ?? row.userID ?? null;
-    const createdAt = toSqliteDatetime(row.createdAt);
-    const updatedAt = toSqliteDatetime(row.updatedAt);
-    const exercisesJson = JSON.stringify(row.exercises ?? []);
+    const exercisesJson = JSON.stringify(row.exercises);
+    console.log('createExerciseList gives json:', exercisesJson);
     return this.context.execute(
       `
         INSERT INTO ExerciseList
-          (name, userId, createdAt, updatedAt, exercises)
+          (name, userId, exercises)
         VALUES
-          (?, ?, ?, ?, ?);
+          (?, ?, ?);
       `,
       row.name,
-      userId,
-      createdAt,
-      updatedAt,
-      exercisesJson
+      row.userId,
+      exercisesJson,
     );
   }
 
@@ -155,10 +143,11 @@ export default class Database {
         username VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL DEFAULT '',
         roles VARCHAR(255) NOT NULL DEFAULT '',
-        createdAt TIMESTAMP NOT NULL,
-        updatedAt TIMESTAMP NOT NULL
+        createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
       );
     `);
+    // TODO: UPDATE ALL USERS???
     await this.context.execute(`
       CREATE TRIGGER Users_updatedAt
       AFTER UPDATE ON Users
@@ -186,8 +175,8 @@ export default class Database {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name VARCHAR(255) NOT NULL DEFAULT '',
         userId INTEGER NOT NULL,
-        createdAt TIMESTAMP NOT NULL,
-        updatedAt TIMESTAMP NOT NULL,
+        createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         exercises TEXT NOT NULL DEFAULT '[]',
         FOREIGN KEY (userId) REFERENCES Users (id) ON DELETE CASCADE ON UPDATE CASCADE
       );

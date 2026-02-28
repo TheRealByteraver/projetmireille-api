@@ -3,6 +3,8 @@ import express, { Response } from 'express';
 import { asyncHandler } from './middleware/async-handler';
 import { sequelize, User, ExerciseList } from './models';
 import { authenticateUser } from './middleware/auth-user';
+import { ExerciseListAttributes } from './models/ExerciseList';
+import { UserAttributes } from './models/User';
 
 const router = express.Router();
 
@@ -28,34 +30,24 @@ function throwError(statusCode: number, message: string): never {
   throw error;
 }
 
-interface ListUser {
-  createdAt?: unknown;
-  updatedAt?: unknown;
-  password?: string;
-  [key: string]: unknown;
-}
+// SANITISATION FUNCTIONS
+// const sanitiseUser = (user: typeof User.prototype): Omit<typeof User.prototype, 'password'> => {
+//   return {
+//     id: user.id,
+//     firstName: user.firstName,
+//     lastName: user.lastName,
+//     username: user.username,
+//   };
+// };
+// const sanitiseExerciseList = (exerciseList: ExerciseList): Omit<ExerciseList, 'createdAt' | 'updatedAt'> => {
+//   return {
+//     id: exerciseList.id,
+//     name: exerciseList.name,
+//     userId: exerciseList.userId,
+//   };
+// };
 
-interface ExerciseListData extends ListUser {
-  user: ListUser;
-}
-
-function filterExerciseListData(row: ExerciseListData): Omit<ExerciseListData, 'createdAt' | 'updatedAt'> & {
-  user: Omit<ListUser, 'createdAt' | 'updatedAt' | 'password'>;
-} {
-  const out = { ...row };
-  delete out.createdAt;
-  delete out.updatedAt;
-  if (out.user) {
-    out.user = { ...out.user };
-    delete out.user.createdAt;
-    delete out.user.updatedAt;
-    delete out.user.password;
-  }
-  return out as Omit<ExerciseListData, 'createdAt' | 'updatedAt'> & {
-    user: Omit<ListUser, 'createdAt' | 'updatedAt' | 'password'>;
-  };
-}
-
+// ROUTES
 router.get(
   '/users',
   authenticateUser,
@@ -88,8 +80,7 @@ router.post(
         username?: string;
         roles?: string;
       };
-      const password =
-        typeof body.password === 'string' ? await bcrypt.hash(body.password, 10) : '';
+      const password = typeof body.password === 'string' ? await bcrypt.hash(body.password, 10) : '';
       const now = new Date().toISOString();
       await sequelize.query(
         `INSERT INTO Users (firstName, lastName, username, password, roles, createdAt, updatedAt)
@@ -104,7 +95,7 @@ router.post(
             createdAt: now,
             updatedAt: now,
           },
-        }
+        },
       );
       res.location('/').status(201).end();
     } catch (error) {
@@ -117,11 +108,21 @@ router.get(
   '/exercise-lists',
   asyncHandler(async (_req, res) => {
     try {
-      const data = await ExerciseList.findAll({
+      const rows = (await ExerciseList.findAll({
         include: [{ model: User, as: 'user' }],
+      })) as (InstanceType<typeof ExerciseList> & { user: UserAttributes })[];
+      const decodedExerciseLists = rows.map((row) => {
+        const rawExerciseList = row.get({ plain: true }) as ExerciseListAttributes & { user: UserAttributes };
+        return {
+          ...rawExerciseList,
+          user: {
+            ...rawExerciseList.user,
+            password: undefined,
+          },
+        };
       });
-      const lists = data.map((row) => filterExerciseListData(row.get({ plain: true }) as ExerciseListData));
-      res.status(200).json(lists);
+
+      res.status(200).json(decodedExerciseLists);
     } catch (error) {
       handleSQLErrorOrRethrow(error as SequelizeValidationError, res);
     }
@@ -138,7 +139,15 @@ router.get(
         include: [{ model: User, as: 'user' }],
       });
       if (rows[0]) {
-        res.status(200).json(filterExerciseListData(rows[0].get({ plain: true }) as ExerciseListData));
+        const rawExerciseList = rows[0].get({ plain: true }) as ExerciseListAttributes & { user: UserAttributes };
+        const decodedExerciseList = {
+          ...rawExerciseList,
+          user: {
+            ...rawExerciseList.user,
+            password: undefined,
+          },
+        };
+        res.status(200).json(decodedExerciseList);
       } else {
         throwError(404, 'The exercise list does not exist.');
       }
@@ -155,10 +164,12 @@ router.post(
     try {
       const user = (req.currentUser && (await User.findByPk(req.currentUser.id))) as { id: number } | null;
       if (user) {
-        const body = req.body as Record<string, unknown>;
-        body.userId = user.id;
-        const list = (await ExerciseList.create(body)) as unknown as { id: number };
-        res.location(`/exercise-lists/${list.id}`).status(201).end();
+        await ExerciseList.create({
+          name: req.body.name,
+          userId: user.id,
+          exercises: req.body.exercises,
+        });
+        res.status(201).end();
       } else {
         throwError(401, 'Authentication error creating exercise list');
       }
@@ -172,11 +183,15 @@ router.put(
   '/exercise-lists/:id',
   authenticateUser,
   asyncHandler(async (req, res) => {
+    const exerciseListId = req.params?.id as string;
+    const user = await User.findByPk(req.currentUser?.id);
+    const userId = user?.id;
+
     try {
       const user = (req.currentUser && (await User.findByPk(req.currentUser.id))) as { id: number } | null;
+      const id = req.params?.id;
       if (user) {
-        const id = typeof req.params.id === 'string' ? req.params.id : req.params.id?.[0];
-        const list = (await ExerciseList.findByPk(id)) as {
+        const list = (await ExerciseList.findByPk(exerciseListId)) as {
           userId: number;
           update: (v: Record<string, unknown>) => Promise<unknown>;
         } | null;

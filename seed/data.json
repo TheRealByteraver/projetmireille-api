@@ -1,273 +1,263 @@
 {
   "users": [
-  {
-    "id": 1,
-    "lastName": "NC",
-    "firstName": "Mireille",
-    "username": "mireille",
-    "password": "mireille",
-    "roles": "admin",
-    "createdAt": "Sun, 15 Feb 2026 09:33:27 GMT",
-    "updatedAt": "Sun, 15 Feb 2026 09:33:27 GMT"
-  },
-  {
-    "id": 2,
-    "lastName": "VO",
-    "firstName": "Erland",
-    "username": "erland",
-    "password": "erland",
-    "roles": "teacher",
-    "createdAt": "Sun, 15 Feb 2026 09:33:27 GMT",
-    "updatedAt": "Sun, 15 Feb 2026 09:33:27 GMT"
-  },
-  {
-    "id": 3,
-    "lastName": "Leblanc",
-    "firstName": "Julie",
-    "username": "julie",
-    "password": "julie",
-    "roles": "student",
-    "createdAt": "Sun, 15 Feb 2026 09:33:27 GMT",
-    "updatedAt": "Sun, 15 Feb 2026 09:33:27 GMT"
-  }
-],
-"exerciseList": [
-  {
-    "id": 1,
-    "name": "liste pour les CE1",
-    "userId": 1,
-    "createdAt": "Sun, 15 Feb 2026 09:33:27 GMT",
-    "updatedAt": "Sun, 15 Feb 2026 09:33:27 GMT",
-    "exercises": [
-      {
-        "exerciseType": "lineGraph",
-        "exerciseData": { 
-          "startNumber": 65, 
-          "step": 5, 
-          "questionPosition": 2, 
-          "nrOfSteps": 7, 
-          "level": "CE1",
-          "difficulty": "easy"
-         }
-      },
-      {
-        "exerciseType": "lineGraph",
-        "exerciseData": {
-          "startNumber": 515,
-          "step": 5,
-          "questionPosition": 2,
-          "nrOfSteps": 4,
-          "level": "CE1",
-          "difficulty": "easy"
+    {
+      "id": 1,
+      "lastName": "NC",
+      "firstName": "Mireille",
+      "username": "mireille",
+      "password": "mireille",
+      "roles": "admin"
+    },
+    {
+      "id": 2,
+      "lastName": "VO",
+      "firstName": "Erland",
+      "username": "erland",
+      "password": "erland",
+      "roles": "teacher"
+    },
+    {
+      "id": 3,
+      "lastName": "Leblanc",
+      "firstName": "Julie",
+      "username": "julie",
+      "password": "julie",
+      "roles": "student"
+    }
+  ],
+  "exerciseList": [
+    {
+      "id": 1,
+      "name": "liste pour les CE1",
+      "userId": 1,
+      "exercises": [
+        {
+          "exerciseType": "lineGraph",
+          "exerciseData": {
+            "startNumber": 65,
+            "step": 5,
+            "questionPosition": 2,
+            "nrOfSteps": 7,
+            "level": "CE1",
+            "difficulty": "easy"
+          }
+        },
+        {
+          "exerciseType": "lineGraph",
+          "exerciseData": {
+            "startNumber": 515,
+            "step": 5,
+            "questionPosition": 2,
+            "nrOfSteps": 4,
+            "level": "CE1",
+            "difficulty": "easy"
+          }
+        },
+        {
+          "exerciseType": "lineGraph",
+          "exerciseData": {
+            "startNumber": 500,
+            "step": 100,
+            "questionPosition": 1,
+            "nrOfSteps": 2,
+            "level": "CE1",
+            "difficulty": "easy"
+          }
+        },
+        {
+          "exerciseType": "lineGraph",
+          "exerciseData": {
+            "startNumber": 295,
+            "step": 5,
+            "questionPosition": 9,
+            "nrOfSteps": 9,
+            "level": "CE1",
+            "difficulty": "easy"
+          }
+        },
+        {
+          "exerciseType": "lineGraph",
+          "exerciseData": {
+            "startNumber": 214,
+            "step": 1,
+            "questionPosition": 4,
+            "nrOfSteps": 4,
+            "level": "CE1",
+            "difficulty": "easy"
+          }
+        },
+        {
+          "exerciseType": "lineGraph",
+          "exerciseData": {
+            "startNumber": 340,
+            "step": 10,
+            "questionPosition": 5,
+            "nrOfSteps": 5,
+            "level": "CE1",
+            "difficulty": "easy"
+          }
+        },
+        {
+          "exerciseType": "lineGraph",
+          "exerciseData": {
+            "startNumber": 200,
+            "step": 100,
+            "questionPosition": 5,
+            "nrOfSteps": 9,
+            "level": "CE1",
+            "difficulty": "easy"
+          }
+        },
+        {
+          "exerciseType": "lineGraph",
+          "exerciseData": {
+            "startNumber": 800,
+            "step": 100,
+            "questionPosition": 4,
+            "nrOfSteps": 8,
+            "level": "CE1",
+            "difficulty": "easy"
+          }
+        },
+        {
+          "exerciseType": "lineGraph",
+          "exerciseData": {
+            "startNumber": 25,
+            "step": 1,
+            "questionPosition": 1,
+            "nrOfSteps": 2,
+            "level": "CE1",
+            "difficulty": "easy"
+          }
+        },
+        {
+          "exerciseType": "lineGraph",
+          "exerciseData": {
+            "startNumber": 527,
+            "step": 1,
+            "questionPosition": 2,
+            "nrOfSteps": 2,
+            "level": "CE1",
+            "difficulty": "easy"
+          }
         }
-      },
-      {
-        "exerciseType": "lineGraph",
-        "exerciseData": {
-          "startNumber": 500,
-          "step": 100,
-          "questionPosition": 1,
-          "nrOfSteps": 2,
-          "level": "CE1",
-          "difficulty": "easy"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "liste CE2",
+      "userId": 1,
+      "exercises": [
+        {
+          "exerciseType": "lineGraph",
+          "exerciseData": {
+            "startNumber": 7732,
+            "step": 1,
+            "questionPosition": 9,
+            "nrOfSteps": 9,
+            "level": "CE2",
+            "difficulty": "easy"
+          }
+        },
+        {
+          "exerciseType": "lineGraph",
+          "exerciseData": {
+            "startNumber": 4892,
+            "step": 2,
+            "questionPosition": 5,
+            "nrOfSteps": 5,
+            "level": "CE2",
+            "difficulty": "easy"
+          }
+        },
+        {
+          "exerciseType": "lineGraph",
+          "exerciseData": {
+            "startNumber": 6885,
+            "step": 5,
+            "questionPosition": 3,
+            "nrOfSteps": 8,
+            "level": "CE2",
+            "difficulty": "easy"
+          }
+        },
+        {
+          "exerciseType": "lineGraph",
+          "exerciseData": {
+            "startNumber": 8322,
+            "step": 2,
+            "questionPosition": 4,
+            "nrOfSteps": 4,
+            "level": "CE2",
+            "difficulty": "easy"
+          }
+        },
+        {
+          "exerciseType": "lineGraph",
+          "exerciseData": {
+            "startNumber": 6300,
+            "step": 100,
+            "questionPosition": 1,
+            "nrOfSteps": 4,
+            "level": "CE2",
+            "difficulty": "easy"
+          }
+        },
+        {
+          "exerciseType": "lineGraph",
+          "exerciseData": {
+            "startNumber": 1370,
+            "step": 2,
+            "questionPosition": 3,
+            "nrOfSteps": 6,
+            "level": "CE2",
+            "difficulty": "easy"
+          }
+        },
+        {
+          "exerciseType": "lineGraph",
+          "exerciseData": {
+            "startNumber": 1000,
+            "step": 100,
+            "questionPosition": 2,
+            "nrOfSteps": 3,
+            "level": "CE2",
+            "difficulty": "easy"
+          }
+        },
+        {
+          "exerciseType": "lineGraph",
+          "exerciseData": {
+            "startNumber": 842,
+            "step": 2,
+            "questionPosition": 6,
+            "nrOfSteps": 6,
+            "level": "CE2",
+            "difficulty": "easy"
+          }
+        },
+        {
+          "exerciseType": "lineGraph",
+          "exerciseData": {
+            "startNumber": 9400,
+            "step": 100,
+            "questionPosition": 5,
+            "nrOfSteps": 8,
+            "level": "CE2",
+            "difficulty": "easy"
+          }
+        },
+        {
+          "exerciseType": "lineGraph",
+          "exerciseData": {
+            "startNumber": 8620,
+            "step": 5,
+            "questionPosition": 2,
+            "nrOfSteps": 2,
+            "level": "CE2",
+            "difficulty": "easy"
+          }
         }
-      },
-      {
-        "exerciseType": "lineGraph",
-        "exerciseData": {
-          "startNumber": 295,
-          "step": 5,
-          "questionPosition": 9,
-          "nrOfSteps": 9,
-          "level": "CE1",
-          "difficulty": "easy"
-        }
-      },
-      {
-        "exerciseType": "lineGraph",
-        "exerciseData": {
-          "startNumber": 214,
-          "step": 1,
-          "questionPosition": 4,
-          "nrOfSteps": 4,
-          "level": "CE1",
-          "difficulty": "easy"
-        }
-      },
-      {
-        "exerciseType": "lineGraph",
-        "exerciseData": {
-          "startNumber": 340,
-          "step": 10,
-          "questionPosition": 5,
-          "nrOfSteps": 5,
-          "level": "CE1",
-          "difficulty": "easy"
-        }
-      },
-      {
-        "exerciseType": "lineGraph",
-        "exerciseData": {
-          "startNumber": 200,
-          "step": 100,
-          "questionPosition": 5,
-          "nrOfSteps": 9,
-          "level": "CE1",
-          "difficulty": "easy"
-        }
-      },
-      {
-        "exerciseType": "lineGraph",
-        "exerciseData": {
-          "startNumber": 800,
-          "step": 100,
-          "questionPosition": 4,
-          "nrOfSteps": 8,
-          "level": "CE1",
-          "difficulty": "easy"
-        }
-      },
-      {
-        "exerciseType": "lineGraph",
-        "exerciseData": {
-          "startNumber": 25,
-          "step": 1,
-          "questionPosition": 1,
-          "nrOfSteps": 2,
-          "level": "CE1",
-          "difficulty": "easy"
-        }
-      },
-      {
-        "exerciseType": "lineGraph",
-        "exerciseData": {
-          "startNumber": 527,
-          "step": 1,
-          "questionPosition": 2,
-          "nrOfSteps": 2,
-          "level": "CE1",
-          "difficulty": "easy"
-        }
-      }
-    ]
-  },
-  {
-    "id": 2,
-    "name": "liste CE2",
-    "userID": 1,
-    "createdAt": "Sun, 15 Feb 2026 09:33:27 GMT",
-    "updatedAt": "Sun, 15 Feb 2026 09:33:27 GMT",
-    "exercises": [
-      {
-        "exerciseType": "lineGraph",
-        "exerciseData": {
-          "startNumber": 7732,
-          "step": 1,
-          "questionPosition": 9,
-          "nrOfSteps": 9,
-          "level": "CE2",
-          "difficulty": "easy"
-        }
-      },
-      {
-        "exerciseType": "lineGraph",
-        "exerciseData": {
-          "startNumber": 4892,
-          "step": 2,
-          "questionPosition": 5,
-          "nrOfSteps": 5,
-          "level": "CE2",
-          "difficulty": "easy"
-        }
-      },
-      {
-        "exerciseType": "lineGraph",
-        "exerciseData": {
-          "startNumber": 6885,
-          "step": 5,
-          "questionPosition": 3,
-          "nrOfSteps": 8,
-          "level": "CE2",
-          "difficulty": "easy"
-        }
-      },
-      {
-        "exerciseType": "lineGraph",
-        "exerciseData": {
-          "startNumber": 8322,
-          "step": 2,
-          "questionPosition": 4,
-          "nrOfSteps": 4,
-          "level": "CE2",
-          "difficulty": "easy"
-        }
-      },
-      {
-        "exerciseType": "lineGraph",
-        "exerciseData": {
-          "startNumber": 6300,
-          "step": 100,
-          "questionPosition": 1,
-          "nrOfSteps": 4,
-          "level": "CE2",
-          "difficulty": "easy"
-        }
-      },
-      {
-        "exerciseType": "lineGraph",
-        "exerciseData": {
-          "startNumber": 1370,
-          "step": 2,
-          "questionPosition": 3,
-          "nrOfSteps": 6,
-          "level": "CE2",
-          "difficulty": "easy"
-        }
-      },
-      {
-        "exerciseType": "lineGraph",
-        "exerciseData": {
-          "startNumber": 1000,
-          "step": 100,
-          "questionPosition": 2,
-          "nrOfSteps": 3,
-          "level": "CE2",
-          "difficulty": "easy"
-        }
-      },
-      {
-        "exerciseType": "lineGraph",
-        "exerciseData": {
-          "startNumber": 842,
-          "step": 2,
-          "questionPosition": 6,
-          "nrOfSteps": 6,
-          "level": "CE2",
-          "difficulty": "easy"
-        }
-      },
-      {
-        "exerciseType": "lineGraph",
-        "exerciseData": {
-          "startNumber": 9400,
-          "step": 100,
-          "questionPosition": 5,
-          "nrOfSteps": 8,
-          "level": "CE2",
-          "difficulty": "easy"
-        }
-      },
-      {
-        "exerciseType": "lineGraph",
-        "exerciseData": {
-          "startNumber": 8620,
-          "step": 5,
-          "questionPosition": 2,
-          "nrOfSteps": 2,
-          "level": "CE2",
-          "difficulty": "easy"
-        }
-      }
       ]
     }
   ]
