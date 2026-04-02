@@ -9,7 +9,12 @@ const enableGlobalErrorLogging = process.env.ENABLE_GLOBAL_ERROR_LOGGING === 'tr
 
 const app = express();
 
-const allowedOrigins = ['http://localhost:3010', 'https://mireille.erland.info', 'https://projetmireille.vercel.app'];
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://mireille.erland.info',
+  'https://projetmireille.vercel.app',
+  'https://maths.erland.info',
+];
 
 app.use(
   cors({
