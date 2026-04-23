@@ -1,9 +1,9 @@
 interface AuthUser {
   id: number;
-  username: string;
   firstName: string;
   lastName: string;
-  password?: string;
+  username: string;
+  roles: string;
 }
 
 declare global {

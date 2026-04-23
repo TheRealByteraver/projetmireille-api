@@ -56,9 +56,11 @@ router.get(
       const user = req.currentUser;
       if (user) {
         res.status(200).json({
+          id: user.id,
           firstName: user.firstName,
           lastName: user.lastName,
           username: user.username,
+          roles: user.roles,
         });
       } else {
         throwError(401, 'Authorization failed');
